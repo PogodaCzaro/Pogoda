@@ -77,3 +77,23 @@ async function getWeather() {
         alert('Nie udało się pobrać lokalizacji');
     });
 }
+
+// Inicjuj UAParser
+const parser = new UAParser();
+const device = parser.getDevice();
+const os = parser.getOS();
+const browser = parser.getBrowser();
+
+console.log('Device:', device);
+console.log('OS:', os);
+console.log('Browser:', browser);
+
+// Przygotuj string do wysłania do GA
+const deviceModel = device.model || 'Unknown model';
+const deviceType = device.type || 'Unknown type';
+const osName = os.name || 'Unknown OS';
+const osVersion = os.version || '';
+const browserName = browser.name || 'Unknown browser';
+
+// Możesz złożyć ładny string:
+const deviceInfo = `${deviceModel} (${deviceType}), OS: ${osName} ${osVersion}, Browser: ${browserName}`;
