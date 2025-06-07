@@ -29,6 +29,7 @@ async function fetchWeather(lat, lon) {
     const res = await fetch(url);
     if (!res.ok) throw new Error('Błąd sieci');
     return await res.json();
+    console.log("Dane pogodowe zostały zaktualizowane:", data.hourly.time[0]);
 }
 
 function displayWeather(current) {
