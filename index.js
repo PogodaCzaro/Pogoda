@@ -1,142 +1,164 @@
 // === UTILS ===
 function degreesToDirection(deg) {
-    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
-        'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-    const index = Math.floor((deg / 22.5) + 0.5) % 16;
-    return directions[index];
+    const directions = ['N','NNE','NE','ENE','E','ESE','SE','SSE',
+        'S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    return directions[Math.floor((deg/22.5)+0.5) % 16];
+}
+
+// --- Helper do formatowania godziny ---
+function formatTime(dateStr) {
+    const date = new Date(dateStr);
+    const h = date.getHours().toString().padStart(2, '0');
+    const m = date.getMinutes().toString().padStart(2, '0');
+    return `${h}:${m}`;
+}
+
+// --- Sprawdza, czy dwie daty są tego samego dnia ---
+function isSameDay(dateStr1, dateStr2) {
+    const d1 = new Date(dateStr1);
+    const d2 = new Date(dateStr2);
+    return d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate();
+}
+
+// --- Formatuje zakres czasu (godziny albo pełna data jeśli różne dni) ---
+function formatRange(start, end) {
+    if (isSameDay(start, end)) {
+        return `${formatTime(start)} - ${formatTime(end)}`;
+    } else {
+        return `${start.replace('T', ' ')} - ${end.replace('T', ' ')}`;
+    }
 }
 
 function weatherCodeToDescription(code) {
     const codes = {
-        0: 'Czyste niebo', 1: 'Głównie słonecznie', 2: 'Częściowo pochmurno',
-        3: 'Pochmurno', 45: 'Mgła', 48: 'Osadzanie szronu',
-        51: 'Lekka mżawka', 53: 'Umiarkowana mżawka', 55: 'Gęsta mżawka',
-        56: 'Lekki marznący deszcz mżawki', 57: 'Gęsty marznący deszcz mżawki',
-        61: 'Lekki deszcz', 63: 'Umiarkowany deszcz', 65: 'Silny deszcz',
-        66: 'Lekki marznący deszcz', 67: 'Silny marznący deszcz',
-        71: 'Lekki śnieg', 73: 'Umiarkowany śnieg', 75: 'Silny śnieg',
-        77: 'Płatki śniegu', 80: 'Przelotne opady deszczu',
-        81: 'Umiarkowane przelotne opady deszczu', 82: 'Silne przelotne opady deszczu',
-        85: 'Lekki śnieg z deszczem', 86: 'Silny śnieg z deszczem',
-        95: 'Burza z gradem', 96: 'Burza z lekkim gradem', 99: 'Burza z silnym gradem'
+        0: 'Czyste niebo',
+        1: 'Głównie słonecznie',
+        2: 'Częściowo pochmurno',
+        3: 'Pochmurno',
+        45: 'Mgła',
+        48: 'Szron',
+        51: 'Lekka mżawka',
+        53: 'Umiarkowana mżawka',
+        55: 'Gęsta mżawka',
+        56: 'Marznąca mżawka',
+        57: 'Silna marznąca mżawka',
+        61: 'Lekki deszcz',
+        63: 'Umiarkowany deszcz',
+        65: 'Silny deszcz',
+        66: 'Lekki marznący deszcz',
+        67: 'Silny marznący deszcz',
+        71: 'Lekki śnieg',
+        73: 'Umiarkowany śnieg',
+        75: 'Silny śnieg',
+        77: 'Płatki śniegu',
+        80: 'Przelotne opady deszczu',
+        81: 'Umiarkowane przelotne opady deszczu',
+        82: 'Silne przelotne opady deszczu',
+        85: 'Śnieg z deszczem',
+        86: 'Silny śnieg z deszczem',
+        95: 'Burza',
+        96: 'Burza z lekkim gradem',
+        99: 'Burza z gradem'
     };
-    return codes[code] || 'Nieznany stan pogody';
+    return codes[code] || 'Nieznane warunki';
 }
 
 // === FETCH & DISPLAY ===
-async function fetchWeather(lat, lon) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,precipitation,weathercode,snowfall&timezone=auto`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Błąd sieci');
-    return await res.json();
-    console.log("Dane pogodowe zostały zaktualizowane:", data.hourly.time[0]);
-}
-
-function displayWeather(current) {
-    document.getElementById('current-temperature').innerText = current.temperature + ' °C';
-    document.getElementById('current-wind-speed').innerText = current.windspeed + ' km/h';
-    document.getElementById('current-wind-direction').innerText = degreesToDirection(current.winddirection);
-    document.getElementById('weather-description').innerText = weatherCodeToDescription(current.weathercode);
-    document.getElementById('weather-timestamp').innerText = `Czas pomiaru: ${current.time}`;
-}
-
-async function updateWeatherIfNeeded() {
+async function fetchWeather() {
     if (!navigator.geolocation) {
         alert('Twoja przeglądarka nie wspiera geolokalizacji!');
         return;
     }
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
 
-        const now = Date.now();
-        const lastUpdate = parseInt(localStorage.getItem('lastWeatherUpdate') || 0);
-        const cachedWeather = localStorage.getItem('cachedWeather');
+    navigator.geolocation.getCurrentPosition(async pos => {
+        const { latitude: lat, longitude: lon } = pos.coords;
 
-        if (cachedWeather && now - lastUpdate < 20 * 60 * 1000) {
-            displayWeather(JSON.parse(cachedWeather));
-        } else {
-            try {
-                const data = await fetchWeather(lat, lon);
-                const current = data.current_weather;
-                displayWeather(current);
-                localStorage.setItem('lastWeatherUpdate', now.toString());
-                localStorage.setItem('cachedWeather', JSON.stringify(current));
-            } catch (err) {
-                alert("Nie udało się pobrać danych pogodowych.");
-            }
-        }
-    });
-}
+        const today = new Date().toISOString().slice(0,10); // "2025-06-08" np.
 
-async function getWeatherAndNotify() {
-    if (!navigator.geolocation) return;
-    if (Notification.permission !== "granted") await Notification.requestPermission();
+        const url = `https://api.open-meteo.com/v1/forecast?` +
+            `latitude=${lat}&longitude=${lon}` +
+            `&current_weather=true` +
+            `&hourly=precipitation,weathercode` +
+            `&start_date=${today}&end_date=${today}` +
+            `&timezone=auto`;
 
-    navigator.geolocation.getCurrentPosition(async (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`Serwer zwrócił ${res.status}`);
+            const data = await res.json();
 
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,precipitation,weathercode,snowfall&timezone=auto`;
-        const response = await fetch(url);
-        const data = await response.json();
+            // Aktualizacja current weather
+            const cw = data.current_weather;
+            if (!cw) throw new Error('Brak danych current_weather');
 
-        const now = new Date();
-        const hourly = data.hourly;
-        let willRainOrSnow = false;
-        let nextPrecipitationHour = null;
+            document.getElementById('current-temperature').textContent =
+                `${cw.temperature}°C`;
+            document.getElementById('current-wind-speed').textContent =
+                `${cw.windspeed} km/h`;
+            document.getElementById('current-wind-direction').textContent =
+                degreesToDirection(cw.winddirection);
+            document.getElementById('weather-description').textContent =
+                weatherCodeToDescription(cw.weathercode);
+            document.getElementById('weather-timestamp').textContent =
+                cw.time.replace('T', ' ');
 
-        for (let i = 0; i < hourly.time.length; i++) {
-            let hourTime = new Date(hourly.time[i]);
-            if (hourTime > now && hourTime <= new Date(now.getTime() + 12 * 60 * 60 * 1000)) {
-                const rain = hourly.precipitation[i];
-                const snow = hourly.snowfall ? hourly.snowfall[i] : 0;
-                const code = hourly.weathercode[i];
-                if (rain > 0 || snow > 0 || (code >= 61 && code <= 86)) {
-                    willRainOrSnow = true;
-                    nextPrecipitationHour = hourTime.toLocaleTimeString();
-                    break;
+            // === OPADY ===
+            const hourly = data.hourly;
+            const times = hourly.time; // tablica ISO czasu np. ["2025-06-08T00:00", "2025-06-08T01:00", ...]
+            const precipitations = hourly.precipitation; // mm
+            const weathercodes = hourly.weathercode;
+
+            // Znajdź godziny, gdzie opady > 0
+            const rainHours = [];
+            for(let i=0; i < precipitations.length; i++) {
+                if(precipitations[i] > 0) {
+                    rainHours.push({
+                        time: times[i],
+                        amount: precipitations[i],
+                        weathercode: weathercodes[i]
+                    });
                 }
             }
-        }
 
-        if (willRainOrSnow && Notification.permission === "granted") {
-            new Notification('⚠️ Pogoda ALERT ⚠️', {
-                body: `Uwaga! Spodziewane opady o godz. ${nextPrecipitationHour}`
-            });
-        }
-    });
-}
+            let rainText = 'Dziś nie przewiduje się opadów.';
+            if(rainHours.length > 0) {
+                const startTime = rainHours[0].time.replace('T', ' ');
+                const endTime = rainHours[rainHours.length - 1].time.replace('T', ' ');
 
-async function loadHourlyForecast() {
-    if (!navigator.geolocation) return;
+                const totalAmount = rainHours.reduce((sum, h) => sum + h.amount, 0).toFixed(1);
 
-    navigator.geolocation.getCurrentPosition(async (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,weathercode,snowfall&timezone=auto`;
-        const res = await fetch(url);
-        const data = await res.json();
+                // Sprawdź czy burza (weathercode 95+)
+                const hasStorm = rainHours.some(h => h.weathercode >= 95);
 
-        const now = new Date();
-        const target = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-        const hourly = data.hourly;
+                // Sprawdź mrzawkę (weathercode 56,57)
+                const hasFreezingDrizzle = rainHours.some(h => h.weathercode === 56 || h.weathercode === 57);
 
-        let output = 'Brak danych';
-        for (let i = 0; i < hourly.time.length; i++) {
-            const t = new Date(hourly.time[i]);
-            if (t.getHours() === target.getHours() && t.getDate() === target.getDate()) {
-                output = `Za 2h: ${hourly.temperature_2m[i]}°C, ${weatherCodeToDescription(hourly.weathercode[i])}, opad: ${hourly.precipitation[i]}mm`;
-                break;
+                let extra = '';
+                if(hasStorm) extra = ', możliwa burza';
+                else if(hasFreezingDrizzle) extra = ', możliwa marznąca mżawka';
+
+                rainText = `Opady od ${startTime} do ${endTime}, łącznie ok. ${totalAmount} mm${extra}.`;
             }
+
+            document.getElementById('rain-container').innerHTML = `
+                <h2>Deszcz:</h2>
+                <p>${rainText}</p>
+            `;
+
+            console.log('Pogoda zaktualizowana, dane opadów:', rainHours);
+
+        } catch (err) {
+            console.error('Błąd pobierania pogody:', err);
+            alert('Nie udało się pobrać danych pogodowych:\n' + err.message);
         }
-        document.getElementById('forecast-in-2h').innerText = output;
+    }, err => {
+        console.error('Błąd geolokalizacji:', err);
+        alert('Nie można uzyskać lokalizacji: ' + err.message);
     });
 }
 
-// === START ===
-window.addEventListener('load', async () => {
-    await updateWeatherIfNeeded();
-    await getWeatherAndNotify();
-    await loadHourlyForecast();
-});
+// === STARTUP ===
+document.addEventListener('DOMContentLoaded', fetchWeather);
+document.getElementById('weather-btn').addEventListener('click', fetchWeather);
