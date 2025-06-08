@@ -1,8 +1,8 @@
 // === UTILS ===
 function degreesToDirection(deg) {
-    const directions = ['N','NNE','NE','ENE','E','ESE','SE','SSE',
-        'S','SSW','SW','WSW','W','WNW','NW','NNW'];
-    return directions[Math.floor((deg/22.5)+0.5) % 16];
+    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+        'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    return directions[Math.floor((deg / 22.5) + 0.5) % 16];
 }
 
 // --- Helper do formatowania godziny ---
@@ -75,7 +75,7 @@ async function fetchWeather() {
     navigator.geolocation.getCurrentPosition(async pos => {
         const { latitude: lat, longitude: lon } = pos.coords;
 
-        const today = new Date().toISOString().slice(0,10); // "2025-06-08" np.
+        const today = new Date().toISOString().slice(0, 10); // "2025-06-08" np.
 
         const url = `https://api.open-meteo.com/v1/forecast?` +
             `latitude=${lat}&longitude=${lon}` +
@@ -106,14 +106,13 @@ async function fetchWeather() {
 
             // === OPADY ===
             const hourly = data.hourly;
-            const times = hourly.time; // tablica ISO czasu np. ["2025-06-08T00:00", "2025-06-08T01:00", ...]
-            const precipitations = hourly.precipitation; // mm
+            const times = hourly.time;
+            const precipitations = hourly.precipitation;
             const weathercodes = hourly.weathercode;
 
-            // Znajdź godziny, gdzie opady > 0
             const rainHours = [];
-            for(let i=0; i < precipitations.length; i++) {
-                if(precipitations[i] > 0) {
+            for (let i = 0; i < precipitations.length; i++) {
+                if (precipitations[i] > 0) {
                     rainHours.push({
                         time: times[i],
                         amount: precipitations[i],
@@ -123,28 +122,26 @@ async function fetchWeather() {
             }
 
             let rainText = 'Dziś nie przewiduje się opadów.';
-            if(rainHours.length > 0) {
-                const startTime = rainHours[0].time.replace('T', ' ');
-                const endTime = rainHours[rainHours.length - 1].time.replace('T', ' ');
-
+            if (rainHours.length > 0) {
+                const start = rainHours[0].time;
+                const end = rainHours[rainHours.length - 1].time;
                 const totalAmount = rainHours.reduce((sum, h) => sum + h.amount, 0).toFixed(1);
 
-                // Sprawdź czy burza (weathercode 95+)
                 const hasStorm = rainHours.some(h => h.weathercode >= 95);
-
-                // Sprawdź mrzawkę (weathercode 56,57)
                 const hasFreezingDrizzle = rainHours.some(h => h.weathercode === 56 || h.weathercode === 57);
 
                 let extra = '';
-                if(hasStorm) extra = ', możliwa burza';
-                else if(hasFreezingDrizzle) extra = ', możliwa marznąca mżawka';
+                if (hasStorm) extra = ', możliwa burza';
+                else if (hasFreezingDrizzle) extra = ', możliwa marznąca mżawka';
 
-                rainText = `Opady od ${startTime} do ${endTime}, łącznie ok. ${totalAmount} mm${extra}.`;
+                rainText = `Opady od ${formatRange(start, end)}, łącznie ok. ${totalAmount} mm${extra}.`;
             }
 
             document.getElementById('rain-container').innerHTML = `
                 <h2>Deszcz:</h2>
-                <p>${rainText}</p>
+                <div style="margin-top: auto;">
+                    <p>${rainText}</p>
+                </div>
             `;
 
             console.log('Pogoda zaktualizowana, dane opadów:', rainHours);
