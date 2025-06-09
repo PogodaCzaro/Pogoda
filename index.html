@@ -3,42 +3,89 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Aktualna Pogoda</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" href="IMGs/Icon/WeatherIcon.svg" type="image/x-icon">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K0FNTL40NG"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-K0FNTL40NG');
-    </script>
+    <title>Pogoda Beta - Digital Glass Style</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<h1>Aktualna pogoda</h1>
-<div id="weather-info">
-    <!-- Temperatura zawsze u góry -->
-    <p id="temperature">
-        Temperatura: <span id="current-temperature">--</span>
-    </p>
-    <!-- Reszta wrzucona do wrappera -->
-    <div id="weather-details">
-        <p id="wind">
-            Wiatr: <span id="current-wind-speed">--</span>, <br>Kierunek: <span id="current-wind-direction">--</span>
-        </p>
-        <p id="description">
-            <span id="weather-description">--</span>
-        </p>
-        <button id="weather-btn">Pobierz pogodę</button>
-        <p id="weatherTimePlacehold">
-            <small>Czas pomiaru: <span id="weather-timestamp">--</span></small>
-        </p>
+<div id="app-container">
+    <!-- Sticky Top Bar -->
+    <div id="top-bar" title="Kliknij, by wrócić na górę">
+        <div id="top-temp">--°C</div>
+        <div id="top-desc">Ładowanie...</div>
+        <div id="top-settings" title="Ustawienia">⚙️</div>
+    </div>
+
+    <div id="main-info">
+        <div id="weather-header">
+            <h2 id="weather-description">--</h2>
+            <span id="weather-timestamp">--</span>
+            <div id="main-temperature">
+                <span id="current-temperature">--°C</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="extra-info">
+        <div class="info-section">
+
+            <!-- WIATR -->
+            <div class="weather-box">
+                <span class="box-label">Wiatr:</span>
+                <span id="current-wind-speed">-- km/h</span>
+                <span id="current-wind-direction">(--)</span>
+            </div>
+
+            <!-- TEMP. ODZ -->
+            <div class="weather-box">
+                <span class="box-label">Temp. odczuwalna:</span>
+                <span id="current-apparent-temp">--°C</span>
+            </div>
+
+            <!-- WIDOCZNOŚĆ -->
+            <div class="weather-box">
+                <span class="box-label">Widoczność:</span>
+                <span id="current-visibility">-- km</span>
+            </div>
+
+            <!-- CIŚNIENIE -->
+            <div class="weather-box">
+                <span class="box-label">Ciśnienie:</span>
+                <span id="current-pressure">-- hPa</span>
+            </div>
+
+            <!-- ROSA -->
+            <div class="weather-box">
+                <span class="box-label">Punkt rosy:</span>
+                <span id="current-dew-point">--°C</span>
+            </div>
+
+            <!-- ZACHMURZENIE -->
+            <div class="weather-box">
+                <span class="box-label">Zachmurzenie:</span>
+                <span id="current-cloudcover">--%</span>
+            </div>
+
+            <!-- OPADY ŚNIEGU -->
+            <div class="weather-box">
+                <span class="box-label">Opady śniegu:</span>
+                <span id="current-snowfall">-- mm</span>
+            </div>
+
+            <!-- UV INDEX -->
+            <div class="weather-box">
+                <span class="box-label">UV Index (max):</span>
+                <span id="uv-index">--</span>
+            </div>
+
+            <!-- 24H FORECAST -->
+            <div id="hourly-forecast-container">
+                <div id="hourly-forecast-scroll"></div>
+            </div>
+
+        </div>
     </div>
 </div>
 
-<div id="rain-container">
-    <h2>Deszcz:</h2>
-</div>
 <script src="index.js"></script>
 </body>
 </html>

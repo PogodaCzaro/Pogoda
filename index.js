@@ -1,206 +1,173 @@
-// === UTILS ===
-function degreesToDirection(deg) {
-    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
-        'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-    return directions[Math.floor((deg / 22.5) + 0.5) % 16];
+const latitude = 52.2297;
+const longitude = 21.0122;
+
+// --- TOP BAR SETUP ---
+const topBar = document.getElementById('top-bar');
+window.addEventListener('scroll', () => {
+    topBar.classList.toggle('show', window.scrollY > 50);
+});
+topBar.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+document.getElementById('top-settings').addEventListener('click', e => {
+    e.stopPropagation();
+    alert('Tu będą ustawienia 😉');
+});
+function updateTopBar(temp, description) {
+    document.getElementById('top-temp').textContent = `${Math.round(temp)}°C`;
+    document.getElementById('top-desc').textContent = description;
 }
 
-function setWeatherBackground(code) {
-    const el = document.querySelector('#weather-info');
-    let bg = '';
-
-    if ([95, 96, 99].includes(code)) {
-        bg = 'IMGs/DynamicBG/V1/storm.jpg';
-    } else if ([61, 63, 65, 80, 81, 82].includes(code)) {
-        bg = 'IMGs/DynamicBG/V1/rain.jpg';
-    } else if ([51, 53, 55].includes(code)) {
-        bg = 'IMGs/DynamicBG/V1/drizzle.jpg';
-    } else if ([0, 1].includes(code)) {
-        bg = 'IMGs/DynamicBG/V1/sunny.jpg';
-    } else if ([2, 3].includes(code)) {
-        bg = 'IMGs/DynamicBG/V1/cloudy.jpg';
-    } else if ([45, 48].includes(code)) {
-        bg = 'IMGs/DynamicBG/V1/fog.jpg';
-    } else {
-        bg = 'rgba(0, 0, 0, 0)';
-    }
-
-    el.style.backgroundImage = `url('${bg}')`;
-    el.style.backgroundSize = 'cover';
-    el.style.backgroundPosition = 'center';
+// --- HELPERS ---
+function windDirectionToText(deg) {
+    const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+    return dirs[Math.round(deg/45) % 8];
 }
-
-// --- Helper do formatowania godziny ---
-function formatTime(dateStr) {
-    const date = new Date(dateStr);
-    const h = date.getHours().toString().padStart(2, '0');
-    const m = date.getMinutes().toString().padStart(2, '0');
-    return `${h}:${m}`;
-}
-
-// --- Sprawdza, czy dwie daty są tego samego dnia ---
-function isSameDay(dateStr1, dateStr2) {
-    const d1 = new Date(dateStr1);
-    const d2 = new Date(dateStr2);
-    return d1.getFullYear() === d2.getFullYear() &&
-        d1.getMonth() === d2.getMonth() &&
-        d1.getDate() === d2.getDate();
-}
-
-// --- Formatuje zakres czasu (godziny albo pełna data jeśli różne dni) ---
-function formatRange(start, end) {
-    if (isSameDay(start, end)) {
-        return `${formatTime(start)} - ${formatTime(end)}`;
-    } else {
-        return `${start.replace('T', ' ')} - ${end.replace('T', ' ')}`;
-    }
-}
-
 function weatherCodeToDescription(code) {
-    const codes = {
-        0: 'Czyste niebo',
-        1: 'Głównie słonecznie',
-        2: 'Częściowo pochmurno',
-        3: 'Pochmurno',
-        45: 'Mgła',
-        48: 'Szron',
-        51: 'Lekka mżawka',
-        53: 'Umiarkowana mżawka',
-        55: 'Gęsta mżawka',
-        56: 'Marznąca mżawka',
-        57: 'Silna marznąca mżawka',
-        61: 'Lekki deszcz',
-        63: 'Umiarkowany deszcz',
-        65: 'Silny deszcz',
-        66: 'Lekki marznący deszcz',
-        67: 'Silny marznący deszcz',
-        71: 'Lekki śnieg',
-        73: 'Umiarkowany śnieg',
-        75: 'Silny śnieg',
-        77: 'Płatki śniegu',
-        80: 'Przelotne opady deszczu',
-        81: 'Umiarkowane przelotne opady deszczu',
-        82: 'Silne przelotne opady deszczu',
-        85: 'Śnieg z deszczem',
-        86: 'Silny śnieg z deszczem',
-        95: 'Burza',
-        96: 'Burza z lekkim gradem',
-        99: 'Burza z gradem'
+    const m = {
+        0: 'Bezchmurnie ☀️',
+        1: 'Częściowo pochmurno 🌤️',
+        2: 'Pochmurno ☁️',
+        3: 'Zachmurzenie całe ☁️',
+        45: 'Mgła 🌫️',
+        48: 'Mgła lodowa 🌫️',
+        51: 'Mżawka lekka 🌧️',
+        53: 'Mżawka 🌧️',
+        55: 'Mżawka intensywna 🌧️',
+        61: 'Deszcz lekki 🌦️',
+        63: 'Deszcz umiarkowany 🌧️',
+        65: 'Deszcz intensywny 🌧️',
+        80: 'Przelotne opady 🌦️',
+        95: 'Burza ⛈️',
+        99: 'Burza z gradem ⛈️'
     };
-    return codes[code] || 'Nieznane warunki';
+    return m[code] || 'Nieznana pogoda';
+}
+function weatherIcon(code) {
+    if (code === 0) return '☀️';
+    if (code === 1 || code === 2) return '🌤️';
+    if (code === 3) return '☁️';
+    if (code === 45 || code === 48) return '🌫️';
+    if ([51,53,55,61,63,65,80].includes(code)) return '🌧️';
+    if (code === 95 || code === 99) return '⛈️';
+    return '❓';
 }
 
-// === FETCH & DISPLAY ===
-async function fetchWeather() {
-    if (!navigator.geolocation) {
-        alert('Twoja przeglądarka nie wspiera geolokalizacji!');
-        return;
+// --- FETCH & RENDER ---
+async function fetchWeatherData() {
+    try {
+        const url =
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+            `&hourly=temperature_2m,weathercode,precipitation,uv_index,relativehumidity_2m,pressure_msl,dewpoint_2m,cloudcover,visibility,apparent_temperature,snowfall,is_day` +
+            `&daily=uv_index_max&current_weather=true&timezone=auto`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const weatherData = await res.json();
+
+        const current = weatherData.current_weather;
+        const now = new Date();
+        const desc = weatherCodeToDescription(current.weathercode);
+
+        // Główna sekcja
+        document.getElementById('current-temperature').textContent = `${Math.round(current.temperature)}°C`;
+        document.getElementById('current-wind-speed').textContent = `${Math.round(current.windspeed)} km/h`;
+        document.getElementById('current-wind-direction').textContent = `(${windDirectionToText(current.winddirection)})`;
+        document.getElementById('weather-description').textContent = desc;
+        document.getElementById('weather-timestamp').textContent =
+            `Aktualizacja: ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+
+        // Top bar
+        updateTopBar(current.temperature, desc);
+
+        // Tło
+        setWeatherBackground(current.weathercode);
+
+        // 24h forecast
+        displayHourlyForecast(weatherData, now);
+
+        // Extras
+        displayCurrentExtras(weatherData, now);
+
+        // UV max
+        document.getElementById('uv-index').textContent =
+            weatherData.daily.uv_index_max && weatherData.daily.uv_index_max.length
+                ? weatherData.daily.uv_index_max[0].toFixed(1)
+                : '--';
+
+    } catch (e) {
+        console.error('Fetch error:', e);
     }
+}
 
-    navigator.geolocation.getCurrentPosition(async pos => {
-        const { latitude: lat, longitude: lon } = pos.coords;
+// --- DISPLAY FUNCTIONS ---
+function displayCurrentExtras(data, now) {
+    const hr = data.hourly;
+    let idx = hr.time.findIndex(t => new Date(t) >= now);
+    if (idx < 0) idx = 0;
 
-        const today = new Date().toISOString().slice(0, 10); // "2025-06-08" np.
+    // pobieramy i wstawiamy
+    const vals = {
+        'current-apparent-temp': hr.apparent_temperature[idx],
+        'current-visibility': hr.visibility[idx],
+        'current-pressure': hr.pressure_msl[idx],
+        'current-dew-point': hr.dewpoint_2m[idx],
+        'current-cloudcover': hr.cloudcover[idx],
+        'current-snowfall': hr.snowfall[idx]
+    };
 
-        const url = `https://api.open-meteo.com/v1/forecast?` +
-            `latitude=${lat}&longitude=${lon}` +
-            `&current_weather=true` +
-            `&hourly=precipitation,weathercode` +
-            `&start_date=${today}&end_date=${today}` +
-            `&timezone=auto`;
-
-        try {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`Serwer zwrócił ${res.status}`);
-            const data = await res.json();
-
-            // Aktualizacja current weather
-            const cw = data.current_weather;
-            if (!cw) throw new Error('Brak danych current_weather');
-
-            document.getElementById('current-temperature').textContent =
-                `${cw.temperature}°C`;
-            document.getElementById('current-wind-speed').textContent =
-                `${cw.windspeed} km/h`;
-            document.getElementById('current-wind-direction').textContent =
-                degreesToDirection(cw.winddirection);
-            document.getElementById('weather-description').textContent =
-                weatherCodeToDescription(cw.weathercode);
-            const weatherBackgrounds = {
-                0: 'sunny.jpg',
-                1: 'mostly_sunny.webp',
-                2: 'partly_cloudy.webp',
-                3: 'cloudy.jpg',
-                45: 'fog.jpg',
-                48: 'frost.jpg',
-                51: 'drizzle.jpg',
-                61: 'light_rain.jpg',
-                63: 'moderate_rain.jpg',
-                65: 'heavy_rain.jpg',
-                80: 'showers.jpg',
-                95: 'storm.jpg',
-                96: 'storm.jpg',
-                99: 'storm.jpg'
-            };
-            const weatherSection = document.getElementById('weather-info');
-            const defaultBg = 'rgba(0, 0, 0, 0)';
-            const backgroundImg = weatherBackgrounds[cw.weathercode] || defaultBg;
-            weatherSection.style.backgroundImage = `url('IMGs/DynamicBG/V1/${backgroundImg}')`;
-            document.getElementById('weather-timestamp').textContent =
-                cw.time.replace('T', ' ');
-
-            // === OPADY ===
-            const hourly = data.hourly;
-            const times = hourly.time;
-            const precipitations = hourly.precipitation;
-            const weathercodes = hourly.weathercode;
-
-            const rainHours = [];
-            for (let i = 0; i < precipitations.length; i++) {
-                if (precipitations[i] > 0) {
-                    rainHours.push({
-                        time: times[i],
-                        amount: precipitations[i],
-                        weathercode: weathercodes[i]
-                    });
-                }
-            }
-
-            let rainText = 'Dziś nie przewiduje się opadów.';
-            if (rainHours.length > 0) {
-                const start = rainHours[0].time;
-                const end = rainHours[rainHours.length - 1].time;
-                const totalAmount = rainHours.reduce((sum, h) => sum + h.amount, 0).toFixed(1);
-
-                const hasStorm = rainHours.some(h => h.weathercode >= 95);
-                const hasFreezingDrizzle = rainHours.some(h => h.weathercode === 56 || h.weathercode === 57);
-
-                let extra = '';
-                if (hasStorm) extra = ', możliwa burza';
-                else if (hasFreezingDrizzle) extra = ', możliwa marznąca mżawka';
-
-                rainText = `Opady od ${formatRange(start, end)}, łącznie ok. ${totalAmount} mm${extra}.`;
-            }
-
-            document.getElementById('rain-container').innerHTML = `
-                <h2>Deszcz:</h2>
-                <div style="margin-top: auto;">
-                    <p>${rainText}</p>
-                </div>
-            `;
-
-            console.log('Pogoda zaktualizowana, dane opadów:', rainHours);
-
-        } catch (err) {
-            console.error('Błąd pobierania pogody:', err);
-            alert('Nie udało się pobrać danych pogodowych:\n' + err.message);
+    Object.entries(vals).forEach(([id, v]) => {
+        const el = document.getElementById(id);
+        if (v == null) {
+            el.textContent = '--';
+        } else if (id === 'current-visibility') {
+            el.textContent = `${(v/1000).toFixed(1)} km`;
+        } else if (id === 'current-snowfall') {
+            el.textContent = `${v.toFixed(1)} mm`;
+        } else if (id.includes('apparent')) {
+            el.textContent = `${v.toFixed(1)}°C`;
+        } else if (id.includes('pressure')) {
+            el.textContent = `${v.toFixed(0)} hPa`;
+        } else if (id.includes('dew-point')) {
+            el.textContent = `${v.toFixed(1)}°C`;
+        } else if (id.includes('cloudcover')) {
+            el.textContent = `${v.toFixed(0)}%`;
         }
-    }, err => {
-        console.error('Błąd geolokalizacji:', err);
-        alert('Nie można uzyskać lokalizacji: ' + err.message);
     });
 }
 
-// === STARTUP ===
-document.addEventListener('DOMContentLoaded', fetchWeather);
-document.getElementById('weather-btn').addEventListener('click', fetchWeather);
+function displayHourlyForecast(data, now) {
+    const sc = document.getElementById('hourly-forecast-scroll');
+    sc.innerHTML = '';
+    const hr = data.hourly;
+    let start = hr.time.findIndex(t => new Date(t) >= now);
+    if (start < 0) start = 0;
+
+    for (let i = start; i < start + 24 && i < hr.time.length; i++) {
+        const dt = new Date(hr.time[i]);
+        const box = document.createElement('div');
+        box.className = 'hour-box';
+        box.innerHTML = `
+      <div class="hour">${dt.getHours().toString().padStart(2,'0')}:00</div>
+      <div class="icon">${weatherIcon(hr.weathercode[i])}</div>
+      <div class="temp">${hr.temperature_2m[i].toFixed(0)}°</div>
+      <div class="precip">${hr.precipitation[i] > 0 ? hr.precipitation[i].toFixed(1) + ' mm' : '--'}</div>
+    `;
+        sc.appendChild(box);
+    }
+}
+
+function setWeatherBackground(code) {
+    const container = document.getElementById('app-container');
+    let file = 'default.jpg';
+    if (code === 0) file = 'sunny.jpg';
+    else if (code === 1 || code === 2) file = 'partly-cloudy.webp';
+    else if (code === 3) file = 'cloudy.jpg';
+    else if (code === 45 || code === 48) file = 'fog.jpg';
+    else if ([51,53,55,61,63,65,80].includes(code)) file = 'rain.jpg';
+    else if ([95,99].includes(code)) file = 'storm.jpg';
+    container.style.backgroundImage = `url('./IMGs/DynamicBG/V1/${file}')`;
+}
+
+// --- START ---
+fetchWeatherData();
+setInterval(fetchWeatherData, 10 * 60 * 1000);

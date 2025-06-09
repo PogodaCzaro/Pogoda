@@ -1,110 +1,164 @@
-/* === RESET === */
-html, body {
+/* Reset & podstawy */
+* {
     margin: 0;
     padding: 0;
-    width: 100%;
-}
-
-/* === TŁO I TYPOGRAFIA === */
-body {
-    background-color: #212121;
-    color: white;
-    font-family: system-ui, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* === KONTAINER POGODY === */
-#weather-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;  /* dzieci od góry */
-    width: 95%;
-    max-width: 400px;
-    aspect-ratio: 1 / 1;
-    background-color: #444444;
-    border-radius: 10px;
-    padding: 10px;
     box-sizing: border-box;
-    margin-top: 20px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    line-height: 1.5;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 1);
+}
 
-    /*Dynamic bg section*/
+body {
+    background-color: black;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+/* Kontener główny */
+#app-container {
+    width: 100%;
+    max-width: 430px; /* iPhone size */
+    min-height: 100vh;
     background-size: cover;
     background-position: center;
-    transition: background-image 0.5s ease-in-out;
+    background-repeat: no-repeat;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
 }
 
-/* Temperatura przymocowana u góry */
-#temperature {
-    font-size: 1.5rem;
+/* Główna sekcja */
+#main-info {
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    text-align: center;
+}
+
+#weather-header h2 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+#main-temperature {
+    font-size: 4rem;
     font-weight: bold;
-    margin: 0 0 1rem 0;
 }
 
-/* Wrapper dla reszty zawartości, wpychany na dół */
-#weather-details {
+/* Sekcja dodatkowa - digital glass style */
+#extra-info {
+    flex: 1;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    padding: 20px;
+    overflow-y: auto;
+    background: rgba(255 255 255 / 0.12);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255 255 255 / 0.18);
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    margin-top: auto;
+    gap: 12px;
 }
 
-/* Ujednolicenie marginesów i pozycji w detalach */
-#wind,
-#description,
-#weather-btn,
-#weatherTimePlacehold {
-    margin: 0;
-    position: static;  /* usuwa ewentualne poprzednie relative/bottom */
-}
-
-/* Przyciski i small również */
-#weather-btn {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    background-color: #666666;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    text-transform: uppercase;
-}
-
-#weather-btn:hover {
-    background-color: #777777;
-}
-
-#weatherTimePlacehold small {
-    font-size: 0.6rem;
-    color: #cccccc;
-}
-#rain-container {
+/* Boxy info */
+.weather-box {
+    background: rgba(255 255 255 / 0.08);
+    padding: 14px 16px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgb(255 255 255 / 0.1);
     display: flex;
-    flex-direction: column;
-    justify-content: flex-end; /* wrzuca wszystko na dół */
-    height: 100%; /* albo konkretną wysokość, jak masz ustawioną */
-    width: 95%;
-    max-width: 400px;
-    background-color: #444444;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.box-label {
+    color: #ccc;
+}
+
+/* 24h forecast scroll */
+#hourly-forecast-container {
+    margin-top: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 8px 0;
+}
+
+#hourly-forecast-scroll {
+    display: flex;
+    gap: 10px;
+    padding: 0 8px;
+}
+
+.hour-box {
+    background: rgba(255 255 255 / 0.1);
     border-radius: 10px;
-    padding: 10px;
-    box-sizing: border-box;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    line-height: 1.5;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 1);
-    color: white;
-    aspect-ratio: 1 / 1;
+    padding: 10px 8px;
+    min-width: 60px;
+    text-align: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
-#rain-container h2 {
-    margin: 0;
-    padding: 0;
+.hour-box .temp {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Sticky top bar */
+#top-bar {
+    position: fixed;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 430px; height: 56px;
+    background: rgba(255 255 255 / 0.1);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 2px 10px rgba(255 255 255 / 0.15);
+    gap: 12px;
+}
+#top-bar.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Elementy wewnątrz */
+#top-temp {
+    font-size: 1.3rem;
+    font-weight: 700;
+    min-width: 48px;
+}
+#top-desc {
+    flex: 1;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#top-settings {
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform 0.25s ease;
+}
+#top-settings:hover {
+    transform: rotate(20deg);
 }
